@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+import jakarta.persistence.Id;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
