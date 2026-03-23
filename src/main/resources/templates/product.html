@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Товар — SpiderNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--accent:#00ff88;--accent2:#ff3366;--text:#f0f0f0;--muted:#666;--border:#222;--font-display:'Syne',sans-serif;--font-mono:'Space Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-display);min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-size:20px;font-weight:800;cursor:pointer}.logo span{color:var(--accent)}
+.nav-right{display:flex;gap:12px}
+.btn{padding:9px 20px;border-radius:6px;font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#000;font-size:15px;padding:14px 32px;border-radius:8px;width:100%;margin-top:16px}.btn-accent:hover{background:#00e67a}
+.btn-accent:disabled{opacity:.4;cursor:not-allowed}
+.wrap{max-width:1100px;margin:0 auto;padding:50px 40px}
+.breadcrumb{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:32px}
+.breadcrumb a{color:var(--muted);text-decoration:none}.breadcrumb a:hover{color:var(--accent)}
+.breadcrumb span{margin:0 8px;opacity:.4}
+
+.product-layout{display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:start}
+.product-img{aspect-ratio:1;background:var(--surface2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:100px;border:1px solid var(--border);margin-bottom:16px}
+.product-cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.cat-tag{padding:4px 12px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:var(--accent);border-radius:100px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em}
+.product-title{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+.product-meta{display:flex;align-items:center;gap:20px;margin-bottom:24px}
+.product-rating{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.product-rating .stars{color:#ffd700;font-size:16px}
+.product-seller{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.product-seller a{color:var(--accent);text-decoration:none}
+.product-desc{font-size:15px;line-height:1.8;color:rgba(240,240,240,.7);margin-bottom:32px;white-space:pre-line}
+
+/* PURCHASE BOX */
+.purchase-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;position:sticky;top:90px}
+.price-main{font-family:var(--font-mono);font-size:40px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.stock-info{font-family:var(--font-mono);font-size:12px;margin-bottom:20px}
+.stock-ok{color:var(--accent)}.stock-no{color:var(--accent2)}
+.purchase-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.seller-box{display:flex;align-items:center;gap:12px}
+.seller-avatar{width:40px;height:40px;background:var(--surface2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--border)}
+.seller-name{font-weight:600;font-size:14px}
+.seller-label{font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+.notice{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6;font-family:var(--font-mono)}
+
+/* REVIEWS */
+.reviews-section{margin-top:64px}
+.section-title{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:28px}
+.reviews-summary{display:flex;align-items:center;gap:32px;margin-bottom:32px;padding:24px;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+.rating-big{font-family:var(--font-mono);font-size:56px;font-weight:700;color:var(--accent);line-height:1}
+.rating-stars{font-size:24px;color:#ffd700;margin-bottom:4px}
+.rating-count{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.stars-breakdown{flex:1}
+.star-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.star-label{font-family:var(--font-mono);font-size:11px;color:var(--muted);width:16px;text-align:right}
+.star-bar{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.star-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.star-pct{font-family:var(--font-mono);font-size:11px;color:var(--muted);width:32px;text-align:right}
+.review-list{display:flex;flex-direction:column;gap:16px}
+.review-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.reviewer{font-weight:600;font-size:14px}
+.review-stars{color:#ffd700;font-size:14px}
+.review-date{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-bottom:8px}
+.review-text{font-size:14px;line-height:1.7;color:rgba(240,240,240,.7)}
+.no-reviews{color:var(--muted);font-size:14px;padding:32px 0}
+
+/* LOADING */
+.skeleton{background:var(--surface2);border-radius:8px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+@media(max-width:768px){
+  nav{padding:16px 20px}.wrap{padding:30px 20px}
+  .product-layout{grid-template-columns:1fr}
+  .purchase-box{position:static}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo" onclick="location.href='/'">Spider<span>Net</span></div>
+  <div class="nav-right">
+    <div id="guestMenu" style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="location.href='/login'">Войти</button>
+    </div>
+    <div id="userMenu" style="display:none;gap:10px;align-items:center">
+      <span id="balanceLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--accent);border:1px solid var(--accent);padding:5px 12px;border-radius:4px">0 ₽</span>
+      <button class="btn btn-ghost" onclick="location.href='/profile'">Профиль</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="breadcrumb">
+    <a href="/">Каталог</a>
+    <span>/</span>
+    <span id="breadProduct">...</span>
+  </div>
+
+  <div class="product-layout">
+    <div>
+      <div class="product-img" id="productImg">⏳</div>
+      <div id="productCats" class="product-cats"></div>
+      <h1 class="product-title" id="productTitle">Загрузка...</h1>
+      <div class="product-meta">
+        <div class="product-rating">
+          <span class="stars" id="metaStars">—</span>
+          <span id="metaRating">—</span>
+          <span id="metaReviewCount" style="font-family:var(--font-mono);font-size:11px"></span>
+        </div>
+        <div class="product-seller">Продавец: <a id="sellerLink" href="#">...</a></div>
+      </div>
+      <div class="product-desc" id="productDesc">Загрузка описания...</div>
+    </div>
+
+    <div>
+      <div class="purchase-box">
+        <div class="price-main" id="productPrice">—</div>
+        <div class="stock-info" id="stockInfo">—</div>
+        <button class="btn btn-accent" id="buyBtn" disabled onclick="buy()">Войдите для покупки</button>
+        <hr class="purchase-divider"/>
+        <div class="seller-box">
+          <div class="seller-avatar">👤</div>
+          <div>
+            <div class="seller-name" id="sellerName">—</div>
+            <div class="seller-label">// продавец</div>
+          </div>
+        </div>
+        <p class="notice">Товар доставляется мгновенно после оплаты. Деньги хранятся на балансе до подтверждения.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="reviews-section">
+    <h2 class="section-title">Отзывы</h2>
+    <div id="reviewsContainer">
+      <div class="no-reviews">Загрузка отзывов...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const productId = location.pathname.split('/').pop();
+let isLoggedIn = false;
+let product = null;
+
+async function init() {
+  try {
+    const me = await fetch('/api/users/me', { credentials: 'include' });
+    if (me.ok) {
+      const u = await me.json();
+      isLoggedIn = true;
+      document.getElementById('guestMenu').style.display = 'none';
+      document.getElementById('userMenu').style.display = 'flex';
+      document.getElementById('balanceLabel').textContent =
+        parseFloat(u.balance).toFixed(2) + ' ₽';
+    }
+  } catch(e) {}
+
+  await loadProduct();
+}
+
+async function loadProduct() {
+  try {
+    const res = await fetch(`/api/products/${productId}`, { credentials: 'include' });
+    if (!res.ok) { document.getElementById('productTitle').textContent = 'Товар не найден'; return; }
+    product = await res.json();
+
+    document.title = product.title + ' — SpiderNet';
+    document.getElementById('breadProduct').textContent = product.title;
+    document.getElementById('productTitle').textContent = product.title;
+    document.getElementById('productDesc').textContent = product.description || 'Описание отсутствует.';
+    document.getElementById('productPrice').textContent = parseFloat(product.price).toFixed(2) + ' ₽';
+    document.getElementById('productImg').textContent = getCategoryEmoji(product.categories?.[0]);
+
+    const stockEl = document.getElementById('stockInfo');
+    if (product.stockCount > 0) {
+      stockEl.innerHTML = `<span class="stock-ok">${product.stockCount} шт. в наличии</span>`;
+    } else {
+      stockEl.innerHTML = '<span class="stock-no">Нет в наличии</span>';
+    }
+
+    document.getElementById('sellerName').textContent = product.sellerUsername;
+    document.getElementById('sellerLink').textContent = product.sellerUsername;
+    document.getElementById('sellerLink').href = `/seller/${product.sellerId}`;
+
+    const cats = document.getElementById('productCats');
+    (product.categories || []).forEach(c => {
+      cats.innerHTML += `<span class="cat-tag">${c}</span>`;
+    });
+
+    const buyBtn = document.getElementById('buyBtn');
+    if (!isLoggedIn) {
+      buyBtn.textContent = 'Войдите для покупки';
+      buyBtn.onclick = () => location.href = `/login?redirect=/product/${productId}`;
+      buyBtn.disabled = false;
+    } else if (product.stockCount === 0) {
+      buyBtn.textContent = 'Нет в наличии';
+      buyBtn.disabled = true;
+    } else {
+      buyBtn.textContent = `Купить за ${parseFloat(product.price).toFixed(2)} ₽`;
+      buyBtn.disabled = false;
+    }
+
+    const stars = product.rating ? '★'.repeat(Math.round(product.rating)) + '☆'.repeat(5 - Math.round(product.rating)) : '—';
+    document.getElementById('metaStars').textContent = stars;
+    document.getElementById('metaRating').textContent = product.rating ? parseFloat(product.rating).toFixed(1) : '—';
+    document.getElementById('metaReviewCount').textContent = product.reviews?.length ? `(${product.reviews.length} отзывов)` : '';
+
+    renderReviews(product.reviews || []);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderReviews(reviews) {
+  const container = document.getElementById('reviewsContainer');
+  if (!reviews.length) {
+    container.innerHTML = '<div class="no-reviews">Пока нет отзывов. Будьте первым!</div>';
+    return;
+  }
+
+  const counts = [0,0,0,0,0];
+  reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating-1]++; });
+  const total = reviews.length;
+  const avg = reviews.reduce((s,r) => s + r.rating, 0) / total;
+
+  const barsHtml = [5,4,3,2,1].map(star => {
+    const pct = total ? Math.round(counts[star-1] / total * 100) : 0;
+    return `<div class="star-row">
+      <span class="star-label">${star}</span>
+      <div class="star-bar"><div class="star-fill" style="width:${pct}%"></div></div>
+      <span class="star-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  const reviewsHtml = reviews.map(r => `
+    <div class="review-item">
+      <div class="review-header">
+        <span class="reviewer">${r.buyerUsername}</span>
+        <span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+      </div>
+      <div class="review-date">${new Date(r.createdAt).toLocaleDateString('ru')}</div>
+      <div class="review-text">${r.comment || 'Без комментария'}</div>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="reviews-summary">
+      <div style="text-align:center">
+        <div class="rating-big">${avg.toFixed(1)}</div>
+        <div class="rating-stars">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))}</div>
+        <div class="rating-count">${total} отзывов</div>
+      </div>
+      <div class="stars-breakdown">${barsHtml}</div>
+    </div>
+    <div class="review-list">${reviewsHtml}</div>
+  `;
+}
+
+async function buy() {
+  if (!isLoggedIn) { location.href = `/login?redirect=/product/${productId}`; return; }
+  const btn = document.getElementById('buyBtn');
+  btn.disabled = true; btn.textContent = 'Оформляем...';
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ productId: parseInt(productId) })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      location.href = `/orders/${data.id}`;
+    } else {
+      alert(data.error || 'Ошибка при покупке');
+      btn.disabled = false;
+      btn.textContent = `Купить за ${parseFloat(product.price).toFixed(2)} ₽`;
+    }
+  } catch(e) {
+    alert('Ошибка сети');
+    btn.disabled = false;
+  }
+}
+
+function getCategoryEmoji(name) {
+  if (!name) return '📦';
+  const n = name.toLowerCase();
+  if (n.includes('игр')) return '🎮';
+  if (n.includes('прокси')) return '🌐';
+  if (n.includes('аккаунт')) return '👤';
+  if (n.includes('ключ')) return '🔑';
+  return '📦';
+}
+
+init();
+</script>
+</body>
+</html>

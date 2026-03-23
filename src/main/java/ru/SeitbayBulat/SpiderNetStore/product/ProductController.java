@@ -3,10 +3,8 @@ package ru.SeitbayBulat.SpiderNetStore.product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductDetailDto;
 import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductListDto;
 
 @RestController
@@ -26,5 +24,9 @@ public class ProductController {
         return ResponseEntity.ok(
                 productService.findAll(q, categoryId, page, size)
         );
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDetailDto> getOne(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.findById(id));
     }
 }
