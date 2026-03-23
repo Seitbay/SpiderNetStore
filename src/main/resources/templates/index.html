@@ -147,123 +147,165 @@ footer{border-top:1px solid var(--border);padding:40px;margin-top:80px;display:f
 <div class="toast" id="toast"></div>
 
 <script>
-let currentCat = null;
+    let currentCat = null;
+    let currentPage = 0;
+    let isLoading = false;
+    let hasNext = true;
+    let currentQuery = null;
 
-// проверяем авторизацию при загрузке
-async function init() {
-  try {
-    const res = await fetch('/api/users/me', { credentials: 'include' });
-    if (res.ok) {
-      const user = await res.json();
-      document.getElementById('guestMenu').style.display = 'none';
-      document.getElementById('userMenu').style.display = 'flex';
-      document.getElementById('balanceLabel').textContent =
-        parseFloat(user.balance).toFixed(2) + ' ₽';
-    }
-  } catch(e) {}
+    // INIT
+    async function init() {
+      try {
+        const res = await fetch('/api/users/me', { credentials: 'include' });
+        if (res.ok) {
+          const user = await res.json();
+          document.getElementById('guestMenu').style.display = 'none';
+          document.getElementById('userMenu').style.display = 'flex';
+          document.getElementById('balanceLabel').textContent =
+            parseFloat(user.balance).toFixed(2) + ' ₽';
+        }
+      } catch(e) {}
 
-  loadCategories();
-  loadProducts();
-}
-
-async function loadCategories() {
-  try {
-    const res = await fetch('/api/categories', { credentials: 'include' });
-    const cats = await res.json();
-    const container = document.getElementById('catsContainer');
-    cats.forEach(c => {
-      const el = document.createElement('div');
-      el.className = 'cat';
-      el.textContent = c.name;
-      el.onclick = () => filterCat(c.id, el);
-      container.appendChild(el);
-    });
-  } catch(e) {}
-}
-
-async function loadProducts(categoryId, query) {
-  const grid = document.getElementById('productsGrid');
-  grid.innerHTML = '<div style="color:var(--muted);font-size:14px;grid-column:1/-1;padding:40px 0">Загрузка...</div>';
-
-  let url = '/api/products?';
-  if (categoryId) url += 'categoryId=' + categoryId + '&';
-  if (query) url += 'q=' + encodeURIComponent(query) + '&';
-
-  try {
-    const res = await fetch(url, { credentials: 'include' });
-    const data = await res.json();
-    const products = data.content || data;
-
-    document.getElementById('productCount').textContent = products.length + ' товаров';
-
-    if (!products.length) {
-      grid.innerHTML = '<div style="color:var(--muted);font-size:14px;grid-column:1/-1;padding:40px 0">Ничего не найдено</div>';
-      return;
+      await loadCategories();
+      resetAndLoad();
     }
 
-    grid.innerHTML = products.map(p => `
-      <div class="product-card" onclick="location.href='/product/${p.id}'">
-        ${p.stockCount === 0 ? '<div class="badge">НЕТ В НАЛИЧИИ</div>' : ''}
-        <div class="card-img">${getCategoryEmoji(p.categoryName)}</div>
-        <div class="card-body">
-          <div class="card-category">${p.categoryName || 'Цифровой товар'}</div>
-          <div class="card-title">${p.title}</div>
-          <div class="card-rating"><span>★</span> ${p.rating ? p.rating.toFixed(1) : '—'}</div>
-          <div class="card-footer">
-            <div class="card-price">${parseFloat(p.price).toFixed(2)} ₽</div>
-            <div class="card-stock">${p.stockCount} шт.</div>
+    // RESET (важно)
+    function resetAndLoad() {
+      currentPage = 0;
+      hasNext = true;
+
+      document.getElementById('productsGrid').innerHTML = '';
+      loadProducts();
+    }
+
+    // ЗАГРУЗКА
+    async function loadProducts() {
+      if (isLoading || !hasNext) return;
+
+      isLoading = true;
+
+      let url = `/api/products?page=${currentPage}`;
+
+      if (currentCat) url += `&categoryId=${currentCat}`;
+      if (currentQuery) url += `&q=${encodeURIComponent(currentQuery)}`;
+
+      try {
+        const res = await fetch(url, { credentials: 'include' });
+        const data = await res.json();
+
+        const products = data.items;
+
+        renderProducts(products);
+
+        document.getElementById('productCount').textContent =
+          data.totalElements + ' товаров';
+
+        hasNext = currentPage < data.totalPages - 1;
+        currentPage++;
+
+      } catch(e) {
+        console.error(e);
+      }
+
+      isLoading = false;
+    }
+
+    // РЕНДЕР
+    function renderProducts(products) {
+      const grid = document.getElementById('productsGrid');
+
+      const html = products.map(p => {
+        const categoryText = p.categories?.join(', ') || 'Цифровой товар';
+        const firstCategory = p.categories?.[0];
+
+        return `
+          <div class="product-card" onclick="location.href='/product/${p.id}'">
+            ${p.stockCount === 0 ? '<div class="badge">НЕТ В НАЛИЧИИ</div>' : ''}
+
+            <div class="card-img">${getCategoryEmoji(firstCategory)}</div>
+
+            <div class="card-body">
+              <div class="card-category">${categoryText}</div>
+
+              <div class="card-title">${p.title}</div>
+
+              <div class="card-rating">
+                <span>★</span> ${p.rating ? Number(p.rating).toFixed(1) : '—'}
+              </div>
+
+              <div class="card-footer">
+                <div class="card-price">${Number(p.price).toFixed(2)} ₽</div>
+                <div class="card-stock">${p.stockCount} шт.</div>
+              </div>
+            </div>
+
+            <div class="card-arrow">↗</div>
           </div>
-        </div>
-        <div class="card-arrow">↗</div>
-      </div>
-    `).join('');
-  } catch(e) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:14px;grid-column:1/-1;padding:40px 0">Ошибка загрузки</div>';
-  }
-}
+        `;
+      }).join('');
 
-function getCategoryEmoji(name) {
-  if (!name) return '📦';
-  const n = name.toLowerCase();
-  if (n.includes('игр') || n.includes('game')) return '🎮';
-  if (n.includes('прокси') || n.includes('proxy')) return '🌐';
-  if (n.includes('аккаунт') || n.includes('account')) return '👤';
-  if (n.includes('ключ') || n.includes('key')) return '🔑';
-  if (n.includes('софт') || n.includes('soft')) return '💿';
-  return '📦';
-}
+      grid.insertAdjacentHTML('beforeend', html);
+    }
+    // SCROLL
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+        loadProducts();
+      }
+    });
 
-function filterCat(id, el) {
-  currentCat = id;
-  document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  loadProducts(id, document.getElementById('searchInput').value || null);
-}
+    // CATEGORIES
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories', { credentials: 'include' });
+        const cats = await res.json();
 
-function search() {
-  const q = document.getElementById('searchInput').value.trim();
-  loadProducts(currentCat, q || null);
-}
+        const container = document.getElementById('catsContainer');
 
-function requireAuth(path) {
-  fetch('/api/users/me', { credentials: 'include' })
-    .then(r => r.ok ? location.href = path : location.href = '/login')
-    .catch(() => location.href = '/login');
-}
+        cats.forEach(c => {
+          const el = document.createElement('div');
+          el.className = 'cat';
+          el.textContent = c.name;
+          el.onclick = () => filterCat(c.id, el);
+          container.appendChild(el);
+        });
+      } catch(e) {}
+    }
 
-async function logout() {
-  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-  location.reload();
-}
+    function filterCat(id, el) {
+      currentCat = id;
+      currentQuery = null;
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+      document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
 
-init();
+      resetAndLoad();
+    }
+
+    // SEARCH
+    function search() {
+      currentQuery = document.getElementById('searchInput').value.trim();
+      currentCat = null;
+      resetAndLoad();
+    }
+
+    // UTILS
+    function getCategoryEmoji(name) {
+      if (!name) return '📦';
+      const n = name.toLowerCase();
+      if (n.includes('игр')) return '🎮';
+      if (n.includes('прокси')) return '🌐';
+      if (n.includes('аккаунт')) return '👤';
+      if (n.includes('ключ')) return '🔑';
+      return '📦';
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      location.reload();
+    }
+
+    init();
 </script>
 </body>
 </html>
