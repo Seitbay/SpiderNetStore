@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.SeitbayBulat.SpiderNetStore.order.review.ReviewRepository;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductRepository;
@@ -23,6 +24,7 @@ public class ProductCatalogService {
 
     private final ProductMapper productMapper;
 
+    @Transactional(readOnly = true)
     public ProductListDto findAll(String q, Long categoryId, int page, int size) {
 
         Pageable pageable = PageRequest.of(
@@ -46,6 +48,7 @@ public class ProductCatalogService {
         return productMapper.toListDto(products);
     }
 
+    @Transactional(readOnly = true)
     public ProductDetailDto findById(Long id) {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Товар не найден"));

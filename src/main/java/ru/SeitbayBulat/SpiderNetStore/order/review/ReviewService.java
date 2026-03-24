@@ -21,12 +21,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReviewService {
     // todo сильная связность с кучей других репозиториев которые не находятся в одном логическом домене -> фиксануть!
+    // на самом деле хз вроде пойдет, ох и будут проблемы при распиле этого говна на куски ('><')
     private final ReviewRepository reviewRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+
     private final ReviewMapper reviewMapper;
 
+    @Transactional(readOnly = true)
     public boolean canLeaveReview(Long userId, Long productId) {
         User buyer = userRepository.findById(userId).orElse(null);
         if (buyer == null) return false;
@@ -67,7 +70,8 @@ public class ReviewService {
         product.setRating(BigDecimal.valueOf(avg).setScale(2, RoundingMode.HALF_UP));
         productRepository.save(product);
     }
-
+    
+    @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsByProductId(Long productId) {
         return reviewRepository.findByProductIdWithBuyer(productId)
                 .stream()
