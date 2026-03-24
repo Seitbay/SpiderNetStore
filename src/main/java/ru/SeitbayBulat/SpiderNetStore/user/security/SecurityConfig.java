@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // эти эндпоинты открыты для всех
                         .requestMatchers("/api/auth/**", "/", "/login", "/register").permitAll()
-                        .requestMatchers("/", "/login", "/register", "/profile", "/products/**", "/product/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/profile", "/products/**", "/product/**", "/api/reviews/product/**", "/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         // всё остальное — только с токеном
                         .anyRequest().authenticated()

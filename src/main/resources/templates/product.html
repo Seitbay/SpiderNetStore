@@ -184,12 +184,34 @@
       } catch(e) {}
 
       await loadProduct();
+      await loadReviews();
 
       if (isLoggedIn) {
         await checkCanLeaveReview();
       }
     }
+    async function loadReviews() {
+      try {
+        const res = await fetch(`/api/reviews/product/${productId}`, {
+          credentials: 'include'
+        });
 
+        if (!res.ok) {
+          renderReviews([]);
+          return;
+        }
+
+        const reviews = await res.json();
+
+        document.getElementById('metaReviewCount').textContent =
+          reviews.length ? `(${reviews.length} отзывов)` : '';
+
+        renderReviews(reviews);
+      } catch (e) {
+        console.error(e);
+        renderReviews([]);
+      }
+    }
     async function loadProduct() {
       try {
         const res = await fetch(`/api/products/${productId}`, { credentials: 'include' });
@@ -239,7 +261,6 @@
         const stars = product.rating ? '★'.repeat(Math.round(product.rating)) + '☆'.repeat(5 - Math.round(product.rating)) : '—';
         document.getElementById('metaStars').textContent = stars;
         document.getElementById('metaRating').textContent = product.rating ? parseFloat(product.rating).toFixed(1) : '—';
-        document.getElementById('metaReviewCount').textContent = product.reviews?.length ? `(${product.reviews.length} отзывов)` : '';
 
         renderReviews(product.reviews || []);
       } catch(e) {
@@ -294,7 +315,7 @@
 
     async function checkCanLeaveReview() {
       try {
-        const res = await fetch(`/api/products/${productId}/review-status`, { credentials: 'include' });
+        const res = await fetch(`/api/reviews/product/${productId}/can-leave`, { credentials: 'include' });
         if (!res.ok) return;
 
         const data = await res.json();
@@ -352,7 +373,7 @@
       btn.textContent = 'Отправляем...';
 
       try {
-        const res = await fetch('/api/reviews', {
+        const res = await fetch('/api/reviews/review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -366,7 +387,7 @@
         if (res.ok) {
           alert('Отзыв успешно опубликован!');
           document.getElementById('leaveReviewSection').style.display = 'none';
-          await loadProduct();
+          await loadReviews();
         } else {
           const err = await res.json();
           alert(err.error || 'Не удалось отправить отзыв');

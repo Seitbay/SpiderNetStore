@@ -22,5 +22,4 @@ public class ProductDetailDto {
     private String sellerUsername;
     private Long sellerId;
     private List<String> categories;
-    private List<ReviewDto> reviews;
 }

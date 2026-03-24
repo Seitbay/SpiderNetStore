@@ -1,4 +1,4 @@
-package ru.SeitbayBulat.SpiderNetStore.product;
+package ru.SeitbayBulat.SpiderNetStore.product.productServices;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -6,20 +6,22 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.SeitbayBulat.SpiderNetStore.order.dto.ReviewDto;
-import ru.SeitbayBulat.SpiderNetStore.order.review.Review;
 import ru.SeitbayBulat.SpiderNetStore.order.review.ReviewRepository;
+import ru.SeitbayBulat.SpiderNetStore.product.Product;
+import ru.SeitbayBulat.SpiderNetStore.product.ProductRepository;
+import ru.SeitbayBulat.SpiderNetStore.product.ProductStatus;
 import ru.SeitbayBulat.SpiderNetStore.product.category.Category;
 import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductDetailDto;
-import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductDto;
 import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductListDto;
+import ru.SeitbayBulat.SpiderNetStore.product.dto.ProductMapper;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class ProductCatalogService {
 
     private final ProductRepository productRepository;
-    private final ReviewRepository reviewRepository;
+
+    private final ProductMapper productMapper;
 
     public ProductListDto findAll(String q, Long categoryId, int page, int size) {
 
@@ -41,7 +43,7 @@ public class ProductService {
                     ProductStatus.ACTIVE, pageable);
         }
 
-        return toListDto(products);
+        return productMapper.toListDto(products);
     }
 
     public ProductDetailDto findById(Long id) {
@@ -60,55 +62,14 @@ public class ProductService {
         dto.setSellerId(p.getSeller().getId());
         dto.setCategories(p.getCategories().stream()
                 .map(Category::getName).toList());
-        dto.setReviews(reviewRepository.findByProductId(id).stream()
-                .map(this::toReviewDto).toList());
         return dto;
     }
+    /* todo Делаем делаем не забываем
+    public ProductListDto findPopular(){
 
-    private ProductListDto toListDto(Page<Product> products) {
-
-        ProductListDto dto = new ProductListDto();
-
-        dto.setItems(
-                products.getContent()
-                        .stream()
-                        .map(this::toDto)
-                        .toList()
-        );
-
-        dto.setPage(products.getNumber());
-        dto.setTotalPages(products.getTotalPages());
-        dto.setTotalElements(products.getTotalElements());
-
-        return dto;
     }
+    public ProductListDto findNewest(){
 
-    private ProductDto toDto(Product p) {
-
-        ProductDto dto = new ProductDto();
-
-        dto.setId(p.getId());
-        dto.setTitle(p.getTitle());
-        dto.setPrice(p.getPrice());
-        dto.setRating(p.getRating());
-        dto.setStockCount(p.getStockCount());
-
-        dto.setCategories(
-                p.getCategories().stream()
-                        .map(Category::getName)
-                        .toList()
-        );
-
-        return dto;
-    }
-    private ReviewDto toReviewDto(Review r) {
-        ReviewDto dto = new ReviewDto();
-        dto.setId(r.getId());
-        dto.setRating(r.getRating());
-        dto.setComment(r.getComment());
-        dto.setBuyerUsername(r.getBuyer().getUsername());
-        dto.setCreatedAt(r.getCreatedAt().toString());
-        return dto;
-    }
+    }*/
 
 }
