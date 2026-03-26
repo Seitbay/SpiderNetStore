@@ -1,12 +1,12 @@
 package ru.SeitbayBulat.SpiderNetStore.user.security;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -28,11 +29,23 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // эти эндпоинты открыты для всех
-                        .requestMatchers("/api/auth/**", "/", "/login", "/register").permitAll()
-                        .requestMatchers("/", "/login", "/register", "/profile", "/products/**", "/product/**", "/api/reviews/product/**", "/search").permitAll()
+
+                        // === Публичные ===
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/profile", "/search").permitAll()
+                        .requestMatchers("/products/**", "/product/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        // всё остальное — только с токеном
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll() // публичный профиль
+
+                        // === Только ADMIN ===
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "MODERATOR")
+
+                        // === Только авторизованные ===
+                        .requestMatchers("/api/users/me/**").authenticated()
+                        .requestMatchers("/api/users/me/seller-application").authenticated()
+
+                        // === Остальное только с токеном ===
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -12,6 +12,9 @@ import ru.SeitbayBulat.SpiderNetStore.user.dto.UserDto;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.UserProfileDto;
 import ru.SeitbayBulat.SpiderNetStore.user.service.UserService;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -38,5 +41,12 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<PublicUserDto> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getPublicUser(id));
+    }
+
+    // для получения баланса
+    @GetMapping("/me/balance")
+    public ResponseEntity<Map<String, BigDecimal>> getMyBalance(Authentication authentication) {
+        BigDecimal balance = userService.getBalance(authentication.getName());
+        return ResponseEntity.ok(Map.of("balance", balance));
     }
 }
