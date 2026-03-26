@@ -3,33 +3,40 @@ package ru.SeitbayBulat.SpiderNetStore.user.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
+import ru.SeitbayBulat.SpiderNetStore.user.dto.PublicUserDto;
+import ru.SeitbayBulat.SpiderNetStore.user.dto.UpdateProfileRequest;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.UserDto;
+import ru.SeitbayBulat.SpiderNetStore.user.dto.UserProfileDto;
+import ru.SeitbayBulat.SpiderNetStore.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getMe(Authentication authentication) {
-        // Authentication приходит автоматически из SecurityContext
-        // JwtFilter уже положил туда юзера
+    public ResponseEntity<UserProfileDto> getMe(Authentication authentication) {
         String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
+        return ResponseEntity.ok(userService.getCurrentUser(email));
+    }
 
-        UserDto dto = new UserDto();
-        dto.setEmail(user.getEmail());
-        dto.setUsername(user.getUsername());
-        dto.setBalance(user.getBalance());
-        dto.setRole(user.getRole().name());
+    @PutMapping("/me")
+    public ResponseEntity<UserProfileDto> updateMe(
+            Authentication authentication,
+            @Valid @RequestBody UpdateProfileRequest request) {
 
-        return ResponseEntity.ok(dto);
+        String email = authentication.getName();
+        return ResponseEntity.ok(userService.updateProfile(email, request));
+    }
+
+    // профиль продавца
+    @GetMapping("/{id}")
+    public ResponseEntity<PublicUserDto> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getPublicUser(id));
     }
 }

@@ -45,4 +45,12 @@ public class User {
 
     @OneToMany(mappedBy = "seller")
     private List<Product> products = new ArrayList<>();
+
+    public boolean isSeller() {
+        return this.role == Role.SELLER || this.role == Role.ADMIN;
+    }
+
+    public boolean canSell() {
+        return isSeller();
+    }
 }
