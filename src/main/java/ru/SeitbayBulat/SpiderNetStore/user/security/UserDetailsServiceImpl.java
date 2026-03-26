@@ -5,8 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
 
 
 @Service

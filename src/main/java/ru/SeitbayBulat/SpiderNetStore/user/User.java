@@ -1,15 +1,14 @@
 package ru.SeitbayBulat.SpiderNetStore.user;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import ru.SeitbayBulat.SpiderNetStore.product.Product;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.Id;
-import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import ru.SeitbayBulat.SpiderNetStore.product.Product;
 
 
 @Data

@@ -1,10 +1,10 @@
 package ru.SeitbayBulat.SpiderNetStore.user.service;
 
-import ru.SeitbayBulat.SpiderNetStore.user.Role;
-import ru.SeitbayBulat.SpiderNetStore.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.SeitbayBulat.SpiderNetStore.user.Role;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.AuthResponse;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.LoginRequest;
