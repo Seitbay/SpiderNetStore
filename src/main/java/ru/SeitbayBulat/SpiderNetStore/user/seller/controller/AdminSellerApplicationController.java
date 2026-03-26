@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ru.SeitbayBulat.SpiderNetStore.user.seller.ApplicationStatus;
 import ru.SeitbayBulat.SpiderNetStore.user.seller.SellerApplication;
 import ru.SeitbayBulat.SpiderNetStore.user.seller.SellerApplicationService;
 
@@ -19,8 +20,9 @@ public class AdminSellerApplicationController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
-    public ResponseEntity<List<SellerApplication>> getPending() {
-        return ResponseEntity.ok(sellerApplicationService.getPendingApplications());
+    public ResponseEntity<List<SellerApplication>> getApplications(
+            @RequestParam(defaultValue = "PENDING") ApplicationStatus status) {
+        return ResponseEntity.ok(sellerApplicationService.getByStatus(status));
     }
 
     @PostMapping("/{id}/approve")

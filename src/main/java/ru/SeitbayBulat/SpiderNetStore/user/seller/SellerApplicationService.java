@@ -66,4 +66,9 @@ public class SellerApplicationService {
     public List<SellerApplication> getPendingApplications() {
         return applicationRepository.findByStatus(ApplicationStatus.PENDING);
     }
+
+    @Transactional(readOnly = true)
+    public List<SellerApplication> getByStatus(ApplicationStatus status) {
+        return applicationRepository.findByStatus(status);
+    }
 }
