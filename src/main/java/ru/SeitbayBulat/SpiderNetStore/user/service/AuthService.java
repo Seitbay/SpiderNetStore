@@ -1,10 +1,11 @@
 package ru.SeitbayBulat.SpiderNetStore.user.service;
 
+import org.springframework.transaction.annotation.Transactional;
+import ru.SeitbayBulat.SpiderNetStore.user.Role;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.SeitbayBulat.SpiderNetStore.user.Role;
-import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.AuthResponse;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.LoginRequest;
@@ -21,6 +22,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
 
         // Проверяем email на уникальность
@@ -56,6 +58,7 @@ public class AuthService {
         );
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
 
         // TODO: заменить на кастомное исключение InvalidCredentialsException

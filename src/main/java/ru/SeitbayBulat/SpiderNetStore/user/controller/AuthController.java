@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.AuthResponse;
-import ru.SeitbayBulat.SpiderNetStore.user.service.AuthService;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.LoginRequest;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.RegisterRequest;
+import ru.SeitbayBulat.SpiderNetStore.user.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
