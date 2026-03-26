@@ -9,6 +9,7 @@ import ru.SeitbayBulat.SpiderNetStore.order.dispute.Dispute;
 import ru.SeitbayBulat.SpiderNetStore.order.review.Review;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
 import ru.SeitbayBulat.SpiderNetStore.product.stock.StockItem;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

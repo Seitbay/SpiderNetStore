@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.Id;
 import ru.SeitbayBulat.SpiderNetStore.order.Order;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
 
 import java.time.LocalDateTime;
 

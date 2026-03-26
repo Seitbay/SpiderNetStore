@@ -5,6 +5,8 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.SeitbayBulat.SpiderNetStore.product.category.Category;
 import jakarta.persistence.Id;
+import ru.SeitbayBulat.SpiderNetStore.user.User;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
