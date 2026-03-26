@@ -70,7 +70,7 @@ public class ReviewService {
         product.setRating(BigDecimal.valueOf(avg).setScale(2, RoundingMode.HALF_UP));
         productRepository.save(product);
     }
-    
+
     @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsByProductId(Long productId) {
         return reviewRepository.findByProductIdWithBuyer(productId)
