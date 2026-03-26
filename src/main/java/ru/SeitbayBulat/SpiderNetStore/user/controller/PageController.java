@@ -34,4 +34,8 @@ public class PageController {
         model.addAttribute("query", q != null ? q : "");
         return "search";
     }
+    @GetMapping("/api/admin")
+    public String admin() {
+        return "admin";
+    }
 }
