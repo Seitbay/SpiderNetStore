@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Профиль — SpiderNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--accent:#00ff88;--accent2:#ff3366;--text:#f0f0f0;--muted:#666;--border:#222;--font-display:'Syne',sans-serif;--font-mono:'Space Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-display);min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-size:20px;font-weight:800;text-decoration:none;color:var(--text)}.logo span{color:var(--accent)}
+.btn{padding:9px 20px;border-radius:6px;font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#000}.btn-accent:hover{background:#00e67a}
+.btn-danger{background:transparent;border:1px solid var(--border);color:var(--accent2)}.btn-danger:hover{border-color:var(--accent2)}
+
+.wrap{max-width:900px;margin:0 auto;padding:50px 40px}
+.page-label{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:16px}
+.page-title{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:40px}
+
+.grid{display:grid;grid-template-columns:280px 1fr;gap:24px}
+
+/* SIDEBAR */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;height:fit-content}
+.avatar{width:72px;height:72px;background:var(--surface2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px;border:2px solid var(--border)}
+.profile-name{font-size:20px;font-weight:800;margin-bottom:4px}
+.profile-email{font-size:13px;color:var(--muted);margin-bottom:20px;font-family:var(--font-mono)}
+.profile-role{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:4px;margin-bottom:20px;letter-spacing:.08em}
+.role-buyer{background:rgba(0,255,136,.1);color:var(--accent);border:1px solid rgba(0,255,136,.2)}
+.role-seller{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.2)}
+.role-admin{background:rgba(255,51,102,.1);color:var(--accent2);border:1px solid rgba(255,51,102,.2)}
+.balance-row{background:var(--surface2);border-radius:8px;padding:16px;margin-bottom:20px}
+.balance-label{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:6px}
+.balance-value{font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--accent)}
+.sidebar-btns{display:flex;flex-direction:column;gap:8px}
+
+/* MAIN */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:28px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ORDERS */
+.order-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;transition:border-color .2s;cursor:pointer}
+.order-item:hover{border-color:var(--border)}
+.order-id{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:6px}
+.order-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.order-date{font-size:12px;color:var(--muted)}
+.order-right{text-align:right;flex-shrink:0}
+.order-amount{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.order-status{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:.06em}
+.status-completed{background:rgba(0,255,136,.1);color:var(--accent)}
+.status-pending{background:rgba(255,215,0,.1);color:#ffd700}
+.status-disputed{background:rgba(255,51,102,.1);color:var(--accent2)}
+.status-refunded{background:rgba(150,150,150,.1);color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;padding:40px 0;text-align:center}
+
+/* DEPOSIT */
+.deposit-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:360px}
+.deposit-box h3{font-size:18px;font-weight:800;margin-bottom:20px}
+.amounts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.amount-btn{padding:8px 16px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;cursor:pointer;font-family:var(--font-mono);font-size:13px;transition:all .2s}
+.amount-btn:hover,.amount-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,.06)}
+.dep-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:var(--font-mono);font-size:16px;outline:none;border-radius:8px;margin-bottom:16px;transition:border-color .2s}
+.dep-input:focus{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">Spider<span>Net</span></a>
+  <div style="display:flex;gap:12px">
+    <button class="btn btn-ghost" onclick="location.href='/'">Каталог</button>
+    <button class="btn btn-ghost" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-label">// личный кабинет</div>
+  <div class="page-title" id="pageTitle">Профиль</div>
+
+  <div class="grid">
+    <div>
+      <div class="profile-card">
+        <div class="avatar">👤</div>
+        <div class="profile-name" id="profileName">—</div>
+        <div class="profile-email" id="profileEmail">—</div>
+        <div class="profile-role role-buyer" id="profileRole">BUYER</div>
+        <div class="balance-row">
+          <div class="balance-label">// баланс</div>
+          <div class="balance-value" id="profileBalance">0.00 ₽</div>
+        </div>
+        <div class="sidebar-btns">
+          <button class="btn btn-ghost" onclick="switchTab('orders')">Мои заказы</button>
+          <button class="btn btn-ghost" onclick="switchTab('deposit')">Пополнить баланс</button>
+          <button class="btn btn-danger" onclick="logout()">Выйти</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tabs">
+        <div class="tab active" id="tab-orders" onclick="switchTab('orders')">Заказы</div>
+        <div class="tab" id="tab-deposit" onclick="switchTab('deposit')">Пополнение</div>
+      </div>
+
+      <div class="tab-panel active" id="panel-orders">
+        <div id="ordersList"><div class="empty">Загрузка...</div></div>
+      </div>
+
+      <div class="tab-panel" id="panel-deposit">
+        <div class="deposit-box">
+          <h3>Пополнить баланс</h3>
+          <div class="amounts">
+            <div class="amount-btn" onclick="selectAmount(100,this)">100 ₽</div>
+            <div class="amount-btn" onclick="selectAmount(300,this)">300 ₽</div>
+            <div class="amount-btn" onclick="selectAmount(500,this)">500 ₽</div>
+            <div class="amount-btn" onclick="selectAmount(1000,this)">1000 ₽</div>
+          </div>
+          <input class="dep-input" type="number" id="depositAmount" placeholder="Сумма в рублях"/>
+          <button class="btn btn-accent" style="width:100%" onclick="deposit()">Пополнить</button>
+          <div style="font-size:12px;color:var(--muted);margin-top:12px;font-family:var(--font-mono)">// демо — реальный платёж не проводится</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function selectAmount(val, el) {
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('depositAmount').value = val;
+}
+
+const statusLabels = { COMPLETED:'completed', PENDING:'pending', DISPUTED:'disputed', REFUNDED:'refunded' };
+const statusText = { COMPLETED:'Завершён', PENDING:'В обработке', DISPUTED:'Спор', REFUNDED:'Возврат' };
+
+async function init() {
+  try {
+    const res = await fetch('/api/users/me', { credentials: 'include' });
+    if (!res.ok) { location.href = '/login?redirect=/profile'; return; }
+    const u = await res.json();
+    document.getElementById('profileName').textContent = u.username;
+    document.getElementById('profileEmail').textContent = u.email;
+    document.getElementById('profileBalance').textContent = parseFloat(u.balance).toFixed(2) + ' ₽';
+    document.getElementById('pageTitle').textContent = u.username;
+    const roleEl = document.getElementById('profileRole');
+    roleEl.textContent = u.role;
+    roleEl.className = 'profile-role role-' + u.role.toLowerCase();
+  } catch(e) { location.href = '/login'; }
+
+  loadOrders();
+}
+
+async function loadOrders() {
+  try {
+    const res = await fetch('/api/orders/my', { credentials: 'include' });
+    const orders = await res.json();
+    const list = document.getElementById('ordersList');
+    if (!orders.length) { list.innerHTML = '<div class="empty">У вас пока нет заказов</div>'; return; }
+    list.innerHTML = orders.map(o => `
+      <div class="order-item" onclick="location.href='/orders/${o.id}'">
+        <div>
+          <div class="order-id">#${o.id}</div>
+          <div class="order-title">${o.productTitle || 'Товар'}</div>
+          <div class="order-date">${new Date(o.createdAt).toLocaleDateString('ru')}</div>
+        </div>
+        <div class="order-right">
+          <div class="order-amount">${parseFloat(o.amount).toFixed(2)} ₽</div>
+          <div class="order-status status-${statusLabels[o.status] || 'pending'}">${statusText[o.status] || o.status}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('ordersList').innerHTML = '<div class="empty">Ошибка загрузки</div>';
+  }
+}
+
+async function deposit() {
+  const amount = parseFloat(document.getElementById('depositAmount').value);
+  if (!amount || amount <= 0) return;
+  try {
+    const res = await fetch('/api/wallet/deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ amount })
+    });
+    if (res.ok) { alert('Баланс пополнен!'); init(); }
+  } catch(e) {}
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  location.href = '/';
+}
+
+init();
+</script>
+</body>
+</html>

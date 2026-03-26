@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Регистрация — SpiderNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--surface:#111;--accent:#00ff88;--text:#f0f0f0;--muted:#666;--border:#222;--font-display:'Syne',sans-serif;--font-mono:'Space Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-display);min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border)}
+.logo{font-size:20px;font-weight:800;text-decoration:none;color:var(--text)}.logo span{color:var(--accent)}
+.page{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.card{width:100%;max-width:420px}
+.card-label{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:16px}
+.card h1{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14px;margin-bottom:36px;line-height:1.6}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+.form-group input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:14px 16px;font-family:var(--font-display);font-size:14px;outline:none;border-radius:8px;transition:border-color .2s}
+.form-group input:focus{border-color:var(--accent)}
+.form-group input::placeholder{color:#333}
+.hint{font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--font-mono)}
+.btn-submit{width:100%;background:var(--accent);color:#000;border:none;padding:15px;font-family:var(--font-display);font-weight:800;font-size:15px;cursor:pointer;border-radius:8px;transition:all .2s;margin-top:8px}
+.btn-submit:hover{background:#00e67a;transform:translateY(-1px)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.error-box{background:rgba(255,51,102,.08);border:1px solid rgba(255,51,102,.3);color:#ff6688;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:20px;display:none}
+.error-box.show{display:block}
+.success-box{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.3);color:var(--accent);padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:20px;display:none}
+.success-box.show{display:block}
+.link-row{text-align:center;font-size:13px;color:var(--muted);margin-top:24px}
+.link-row a{color:var(--accent);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<nav><a href="/" class="logo">Spider<span>Net</span></a></nav>
+<div class="page">
+  <div class="card">
+    <div class="card-label">// новый аккаунт</div>
+    <h1>Создать аккаунт</h1>
+    <p>Регистрация занимает 30 секунд. Покупайте сразу после.</p>
+
+    <div class="error-box" id="errorBox"></div>
+    <div class="success-box" id="successBox"></div>
+
+    <div class="form-group">
+      <label>EMAIL</label>
+      <input type="email" id="email" placeholder="you@example.com"/>
+    </div>
+    <div class="form-group">
+      <label>ИМЯ ПОЛЬЗОВАТЕЛЯ</label>
+      <input type="text" id="username" placeholder="cooluser123"/>
+      <div class="hint">Будет отображаться в профиле</div>
+    </div>
+    <div class="form-group">
+      <label>ПАРОЛЬ</label>
+      <input type="password" id="password" placeholder="минимум 6 символов"/>
+    </div>
+    <div class="form-group">
+      <label>ПОВТОРИТЕ ПАРОЛЬ</label>
+      <input type="password" id="password2" placeholder="••••••••" onkeydown="if(event.key==='Enter')register()"/>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="register()">Создать аккаунт</button>
+
+    <div class="link-row">
+      Уже есть аккаунт? <a href="/login">Войти</a>
+    </div>
+  </div>
+</div>
+<script>
+async function register() {
+  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const password2 = document.getElementById('password2').value;
+  const btn = document.getElementById('submitBtn');
+  const err = document.getElementById('errorBox');
+  const ok = document.getElementById('successBox');
+
+  err.classList.remove('show');
+  ok.classList.remove('show');
+
+  if (!email || !username || !password) { err.textContent = 'Заполните все поля'; err.classList.add('show'); return; }
+  if (password !== password2) { err.textContent = 'Пароли не совпадают'; err.classList.add('show'); return; }
+  if (password.length < 6) { err.textContent = 'Пароль минимум 6 символов'; err.classList.add('show'); return; }
+
+  btn.disabled = true; btn.textContent = 'Создаём аккаунт...';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, username, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      ok.textContent = 'Аккаунт создан! Перенаправляем...';
+      ok.classList.add('show');
+      setTimeout(() => location.href = '/', 1200);
+    } else {
+      err.textContent = data.error || 'Ошибка регистрации';
+      err.classList.add('show');
+    }
+  } catch(e) {
+    err.textContent = 'Ошибка сети. Попробуйте снова.';
+    err.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = 'Создать аккаунт';
+}
+</script>
+</body>
+</html>

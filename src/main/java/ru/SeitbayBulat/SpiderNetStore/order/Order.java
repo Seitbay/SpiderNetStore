@@ -3,7 +3,7 @@ package ru.SeitbayBulat.SpiderNetStore.order;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 import ru.SeitbayBulat.SpiderNetStore.order.chat.ChatMessage;
 import ru.SeitbayBulat.SpiderNetStore.order.dispute.Dispute;
 import ru.SeitbayBulat.SpiderNetStore.order.review.Review;
