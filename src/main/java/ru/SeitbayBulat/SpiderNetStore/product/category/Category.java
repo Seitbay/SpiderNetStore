@@ -3,7 +3,7 @@ package ru.SeitbayBulat.SpiderNetStore.product.category;
 import jakarta.persistence.*;
 import lombok.Data;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
-
+import jakarta.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
 
