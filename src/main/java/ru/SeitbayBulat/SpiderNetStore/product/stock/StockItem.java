@@ -4,7 +4,7 @@ package ru.SeitbayBulat.SpiderNetStore.product.stock;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
 
 import java.time.LocalDateTime;

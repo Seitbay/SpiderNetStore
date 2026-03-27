@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Админ панель — SpiderNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--accent:#00ff88;--accent2:#ff3366;--text:#f0f0f0;--muted:#666;--border:#222;--font-display:'Syne',sans-serif;--font-mono:'Space Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-display);min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-size:20px;font-weight:800;text-decoration:none;color:var(--text)}.logo span{color:var(--accent)}
+.btn{padding:9px 20px;border-radius:6px;font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#000}.btn-accent:hover{background:#00e67a}
+.btn-danger{background:transparent;border:1px solid rgba(255,51,102,.3);color:var(--accent2)}.btn-danger:hover{border-color:var(--accent2)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.wrap{max-width:1000px;margin:0 auto;padding:50px 40px}
+.page-label{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.15em;margin-bottom:16px}
+.page-title{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.page-sub{font-size:14px;color:var(--muted);margin-bottom:40px;font-family:var(--font-mono)}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:28px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* APPLICATIONS TABLE */
+.app-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.app-item:hover{border-color:#2a2a2a}
+.app-user{flex:1}
+.app-username{font-size:16px;font-weight:700;margin-bottom:4px}
+.app-email{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:6px}
+.app-date{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.app-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.status-badge{font-family:var(--font-mono);font-size:10px;padding:3px 10px;border-radius:4px;letter-spacing:.06em;margin-right:8px}
+.badge-pending{background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.2)}
+.badge-approved{background:rgba(0,255,136,.1);color:var(--accent);border:1px solid rgba(0,255,136,.2)}
+.badge-rejected{background:rgba(255,51,102,.1);color:var(--accent2);border:1px solid rgba(255,51,102,.2)}
+
+/* REJECT MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:400px}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:16px}
+.modal textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px;font-family:var(--font-mono);font-size:13px;border-radius:8px;resize:vertical;min-height:100px;outline:none;margin-bottom:16px}
+.modal textarea:focus{border-color:var(--accent2)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+
+.empty{color:var(--muted);font-size:14px;padding:40px 0;text-align:center}
+.count-badge{display:inline-block;background:rgba(255,51,102,.15);color:var(--accent2);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.stat-label{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:.08em}
+.stat-value{font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--accent)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">Spider<span>Net</span> <span style="color:var(--muted);font-size:14px;font-weight:400">/ admin</span></a>
+  <div style="display:flex;gap:12px">
+    <button class="btn btn-ghost" onclick="location.href='/profile'">Мой профиль</button>
+    <button class="btn btn-ghost" onclick="location.href='/'">Каталог</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-label">// панель управления</div>
+  <div class="page-title">Админ панель</div>
+  <div class="page-sub" id="adminEmail">—</div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">// PENDING заявок</div>
+      <div class="stat-value" id="statPending">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">// одобрено всего</div>
+      <div class="stat-value" id="statApproved">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">// отклонено</div>
+      <div class="stat-value" id="statRejected">—</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-pending" onclick="switchTab('pending')">
+      На рассмотрении <span class="count-badge" id="pendingCount">0</span>
+    </div>
+    <div class="tab" id="tab-approved" onclick="switchTab('approved')">Одобренные</div>
+    <div class="tab" id="tab-rejected" onclick="switchTab('rejected')">Отклонённые</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-pending">
+    <div id="listPending"><div class="empty">Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="panel-approved">
+    <div id="listApproved"><div class="empty">Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="panel-rejected">
+    <div id="listRejected"><div class="empty">Загрузка...</div></div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal">
+    <h3>Отклонить заявку</h3>
+    <textarea id="rejectComment" placeholder="Причина отклонения (необязательно)..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeRejectModal()">Отмена</button>
+      <button class="btn btn-danger" onclick="confirmReject()">Отклонить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let rejectTargetId = null;
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── проверка доступа ──────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch('/api/users/me', { credentials: 'include' });
+    if (!res.ok) { location.href = '/login'; return; }
+    const u = await res.json();
+    if (u.role !== 'ADMIN' && u.role !== 'MODERATOR') {
+      location.href = '/profile';
+      return;
+    }
+    document.getElementById('adminEmail').textContent = '// ' + u.email + ' [' + u.role + ']';
+  } catch(e) { location.href = '/login'; }
+
+  loadAll();
+}
+
+// ── загрузка заявок ───────────────────────────────────────
+async function loadAll() {
+  await Promise.all([
+    loadApplications('PENDING',   'listPending'),
+    loadApplications('APPROVED',  'listApproved'),
+    loadApplications('REJECTED',  'listRejected'),
+  ]);
+}
+
+async function loadApplications(status, containerId) {
+  const container = document.getElementById(containerId);
+  try {
+    const res = await fetch('/api/admin/seller-applications?status=' + status, { credentials: 'include' });
+    if (!res.ok) { container.innerHTML = '<div class="empty">Ошибка загрузки</div>'; return; }
+    const apps = await res.json();
+
+    // обновляем счётчики
+    if (status === 'PENDING') {
+      document.getElementById('pendingCount').textContent = apps.length;
+      document.getElementById('statPending').textContent  = apps.length;
+    }
+    if (status === 'APPROVED') document.getElementById('statApproved').textContent = apps.length;
+    if (status === 'REJECTED') document.getElementById('statRejected').textContent = apps.length;
+
+    if (!apps.length) { container.innerHTML = '<div class="empty">Нет заявок</div>'; return; }
+
+    container.innerHTML = apps.map(a => `
+      <div class="app-item" id="app-${a.id}">
+        <div class="app-user">
+          <div class="app-username">${a.user?.username || '—'}</div>
+          <div class="app-email">${a.user?.email || '—'}</div>
+          <div class="app-date">${a.createdAt ? new Date(a.createdAt).toLocaleString('ru') : '—'}</div>
+          ${a.adminComment ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;font-family:var(--font-mono)">Комментарий: ${a.adminComment}</div>` : ''}
+        </div>
+        <div class="app-actions">
+          <span class="status-badge badge-${a.status.toLowerCase()}">${a.status}</span>
+          ${status === 'PENDING' ? `
+            <button class="btn btn-accent btn-sm" onclick="approve(${a.id})">Одобрить</button>
+            <button class="btn btn-danger btn-sm" onclick="openRejectModal(${a.id})">Отклонить</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty">Ошибка соединения</div>';
+  }
+}
+
+// ── одобрить ──────────────────────────────────────────────
+async function approve(id) {
+  try {
+    const res = await fetch(`/api/admin/seller-applications/${id}/approve`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (res.ok) {
+      // убираем карточку и перезагружаем
+      document.getElementById('app-' + id)?.remove();
+      loadAll();
+    } else {
+      const d = await res.json();
+      alert(d.error || 'Ошибка');
+    }
+  } catch(e) { alert('Ошибка соединения'); }
+}
+
+// ── отклонить ─────────────────────────────────────────────
+function openRejectModal(id) {
+  rejectTargetId = id;
+  document.getElementById('rejectComment').value = '';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function closeRejectModal() {
+  rejectTargetId = null;
+  document.getElementById('rejectModal').classList.remove('open');
+}
+
+async function confirmReject() {
+  if (!rejectTargetId) return;
+  const comment = document.getElementById('rejectComment').value.trim();
+  try {
+    const url = `/api/admin/seller-applications/${rejectTargetId}/reject` + (comment ? `?comment=${encodeURIComponent(comment)}` : '?comment=');
+    const res = await fetch(url, { method: 'POST', credentials: 'include' });
+    if (res.ok) {
+      closeRejectModal();
+      loadAll();
+    } else {
+      const d = await res.json();
+      alert(d.error || 'Ошибка');
+    }
+  } catch(e) { alert('Ошибка соединения'); }
+}
+
+// закрытие модалки по клику вне
+document.getElementById('rejectModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRejectModal();
+});
+
+init();
+</script>
+</body>
+</html>

@@ -1,15 +1,14 @@
 package ru.SeitbayBulat.SpiderNetStore.user;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import ru.SeitbayBulat.SpiderNetStore.product.Product;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import ru.SeitbayBulat.SpiderNetStore.product.Product;
 
 
 @Data
@@ -46,4 +45,12 @@ public class User {
 
     @OneToMany(mappedBy = "seller")
     private List<Product> products = new ArrayList<>();
+
+    public boolean isSeller() {
+        return this.role == Role.SELLER || this.role == Role.ADMIN;
+    }
+
+    public boolean canSell() {
+        return isSeller();
+    }
 }
