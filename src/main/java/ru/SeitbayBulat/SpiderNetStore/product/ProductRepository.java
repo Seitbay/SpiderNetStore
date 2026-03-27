@@ -36,4 +36,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.stockCount = :count WHERE p.id = :productId")
     void updateStockCount(@Param("productId") Long productId, @Param("count") int count);
+    Page<Product> findBySeller_Id(Long sellerId, Pageable pageable);
 }

@@ -67,6 +67,18 @@ public class ProductCatalogService {
                 .map(Category::getName).toList());
         return dto;
     }
+
+    @Transactional(readOnly = true)
+    public ProductListDto findMyProducts(Long sellerId, int page, int size) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("createdAt").descending()
+        );
+
+        Page<Product> products = productRepository.findBySeller_Id(sellerId, pageable);
+        return productMapper.toListDto(products);
+    }
     /* todo Делаем делаем не забываем
     public ProductListDto findPopular(){
 
