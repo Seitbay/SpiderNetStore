@@ -3,10 +3,11 @@ package ru.SeitbayBulat.SpiderNetStore.product;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import ru.SeitbayBulat.SpiderNetStore.product.category.Category;
-import jakarta.persistence.Id;
 import ru.SeitbayBulat.SpiderNetStore.user.User;
-
+import jakarta.persistence.Id;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class Product {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "field_schema", columnDefinition = "jsonb")
     private String fieldSchema;
 }

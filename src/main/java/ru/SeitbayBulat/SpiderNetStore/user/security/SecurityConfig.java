@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/", "/login", "/register", "/profile", "/search").permitAll()
                         .requestMatchers("/products/**", "/product/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/product/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll() // публичный профиль
