@@ -3,6 +3,7 @@ package ru.SeitbayBulat.SpiderNetStore.user.seller.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,5 +20,9 @@ public class SellerApplicationController {
     public ResponseEntity<Void> apply(Authentication authentication) {
         sellerApplicationService.applyForSeller(authentication.getName());
         return ResponseEntity.ok().build();
+    }
+    @GetMapping("/seller-application")
+    public ResponseEntity<?> getApplicationStatus(Authentication authentication) {
+        return sellerApplicationService.getApplicationStatus(authentication.getName());
     }
 }

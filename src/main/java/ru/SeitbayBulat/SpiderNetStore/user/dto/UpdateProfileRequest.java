@@ -1,5 +1,6 @@
 package ru.SeitbayBulat.SpiderNetStore.user.dto;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.processing.Pattern;
 

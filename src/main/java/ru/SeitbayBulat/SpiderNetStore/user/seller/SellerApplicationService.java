@@ -2,6 +2,7 @@ package ru.SeitbayBulat.SpiderNetStore.user.seller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.SeitbayBulat.SpiderNetStore.user.Role;
@@ -9,7 +10,10 @@ import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -70,5 +74,28 @@ public class SellerApplicationService {
     @Transactional(readOnly = true)
     public List<SellerApplication> getByStatus(ApplicationStatus status) {
         return applicationRepository.findByStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getApplicationStatus(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        // Если уже SELLER — сообщаем об этом
+        if (user.getRole() == Role.SELLER) {
+            return ResponseEntity.ok(Map.of("role", "SELLER"));
+        }
+
+        // Ищем заявку
+        Optional<SellerApplication> app = applicationRepository.findTopByUserOrderByCreatedAtDesc(user);
+        if (app.isEmpty()) {
+            return ResponseEntity.ok(Map.of("status", "NONE"));
+        }
+
+        SellerApplication a = app.get();
+        Map<String, Object> result = new HashMap<>();
+        result.put("status", a.getStatus().name());
+        if (a.getAdminComment() != null) result.put("comment", a.getAdminComment());
+        return ResponseEntity.ok(result);
     }
 }

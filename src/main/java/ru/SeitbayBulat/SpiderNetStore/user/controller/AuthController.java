@@ -2,6 +2,7 @@ package ru.SeitbayBulat.SpiderNetStore.user.controller;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +42,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/logout") //TODO: нужно еще экстрактить токен
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("jwt", "");
         cookie.setHttpOnly(true);
