@@ -35,7 +35,7 @@ public class ReviewService {
         if (buyer == null) return false;
 
         return orderRepository
-                .findByBuyerAndProductIdAndStatusAndReviewIsNull(
+                .findTopByBuyerAndProduct_IdAndStatusAndReviewIsNullOrderByIdDesc(
                         buyer, productId, OrderStatus.COMPLETED)
                 .isPresent();
     }
@@ -46,7 +46,7 @@ public class ReviewService {
         Product product = productRepository.findById(req.getProductId()).orElseThrow();
 
         Order order = orderRepository
-                .findByBuyerAndProductIdAndStatusAndReviewIsNull(
+                .findTopByBuyerAndProduct_IdAndStatusAndReviewIsNullOrderByIdDesc(
                         buyer, req.getProductId(), OrderStatus.COMPLETED)
                 .orElseThrow(() -> new RuntimeException("Заказ не найден или отзыв уже оставлен"));
 
