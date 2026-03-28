@@ -32,6 +32,10 @@ public class PageController {
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String q, Model model) {
         model.addAttribute("query", q != null ? q : "");
-        return "search"; // search.html
+        return "search";
+    }
+    @GetMapping("/api/admin")
+    public String admin() {
+        return "admin";
     }
 }
