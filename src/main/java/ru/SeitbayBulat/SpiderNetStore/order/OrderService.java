@@ -19,6 +19,7 @@ import ru.SeitbayBulat.SpiderNetStore.user.User;
 import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -57,16 +58,12 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    /**
-     * Покупатель подтверждает заказ: списание с баланса, зачисление продавцу, единица склада — SOLD.
-     */
+
     @Transactional
     public Order completeOrder(Long orderId, Long buyerId) {
         Order order = orderRepository.findByIdAndBuyer_Id(orderId, buyerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден"));
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Заказ нельзя завершить в текущем статусе");
-        }
+        requireStatus(order, OrderStatus.PENDING);
 
         User buyer = order.getBuyer();
         User seller = order.getProduct().getSeller();
@@ -92,32 +89,24 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    /**
-     * Отмена ожидающего заказа покупателем: возврат позиции на склад.
-     */
+
     @Transactional
     public Order cancelOrder(Long orderId, Long buyerId) {
         Order order = orderRepository.findByIdAndBuyer_Id(orderId, buyerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден"));
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Отмена возможна только для ожидающего заказа");
-        }
+        requireStatus(order, OrderStatus.PENDING);
 
         stockService.releaseStockItem(order.getStockItem());
         order.setStatus(OrderStatus.CANCELLED);
         return orderRepository.save(order);
     }
 
-    /**
-     * Возврат средств покупателю после завершённой сделки (инициирует продавец).
-     */
+
     @Transactional
     public Order refundOrder(Long orderId, Long sellerId) {
         Order order = orderRepository.findByIdAndProduct_Seller_Id(orderId, sellerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден"));
-        if (order.getStatus() != OrderStatus.COMPLETED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Возврат возможен только для завершённого заказа");
-        }
+        requireStatus(order, OrderStatus.COMPLETED, OrderStatus.DISPUTED);
 
         User buyer = order.getBuyer();
         User seller = order.getProduct().getSeller();
@@ -141,6 +130,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+
     @Transactional(readOnly = true)
     public Order getOrderForParticipant(Long orderId, Long userId) {
         return orderRepository.findByIdAndParticipant(orderId, userId)
@@ -157,9 +147,15 @@ public class OrderService {
         return orderRepository.findByProduct_Seller_IdOrderByCreatedAtDesc(sellerId, pageable);
     }
 
-    /**
-     * Списание с {@code from} и зачисление на {@code to}; сохранение пользователей в порядке id для согласованности блокировок.
-     */
+    private void requireStatus(Order order, OrderStatus... allowed) {
+        OrderStatus current = order.getStatus();
+        if (Arrays.stream(allowed).anyMatch(s -> s == current)) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Операция недоступна для статуса " + current + ", допустимо: " + Arrays.toString(allowed));
+    }
+
     private void transferMoney(User from, User to, BigDecimal amount) {
         from.setBalance(from.getBalance().subtract(amount));
         to.setBalance(to.getBalance().add(amount));

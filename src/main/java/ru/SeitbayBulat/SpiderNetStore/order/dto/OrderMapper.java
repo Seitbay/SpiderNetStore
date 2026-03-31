@@ -3,6 +3,7 @@ package ru.SeitbayBulat.SpiderNetStore.order.dto;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import ru.SeitbayBulat.SpiderNetStore.order.Order;
+import ru.SeitbayBulat.SpiderNetStore.order.dispute.Dispute;
 
 @Component
 public class OrderMapper {
@@ -22,6 +23,11 @@ public class OrderMapper {
             dto.setSellerUsername(order.getProduct().getSeller().getUsername());
         }
         dto.setStockItemId(order.getStockItem() != null ? order.getStockItem().getId() : null);
+        Dispute dispute = order.getDispute();
+        if (dispute != null) {
+            dto.setDisputeId(dispute.getId());
+            dto.setDisputeStatus(dispute.getStatus() != null ? dispute.getStatus().name() : null);
+        }
         return dto;
     }
 

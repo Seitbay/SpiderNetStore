@@ -1,8 +1,10 @@
 package ru.SeitbayBulat.SpiderNetStore.order.review;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.SeitbayBulat.SpiderNetStore.order.Order;
 import ru.SeitbayBulat.SpiderNetStore.order.OrderRepository;
 import ru.SeitbayBulat.SpiderNetStore.order.OrderStatus;
@@ -20,8 +22,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
-    // todo сильная связность с кучей других репозиториев которые не находятся в одном логическом домене -> фиксануть!
-    // на самом деле хз вроде пойдет, ох и будут проблемы при распиле этого говна на куски ('><')
+
+    private static final List<OrderStatus> STATUSES_ELIGIBLE_FOR_REVIEW = List.of(
+            OrderStatus.COMPLETED,
+            OrderStatus.DISPUTED
+    );
+
     private final ReviewRepository reviewRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -32,23 +38,28 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public boolean canLeaveReview(Long userId, Long productId) {
         User buyer = userRepository.findById(userId).orElse(null);
-        if (buyer == null) return false;
+        if (buyer == null) {
+            return false;
+        }
 
         return orderRepository
-                .findTopByBuyerAndProduct_IdAndStatusAndReviewIsNullOrderByIdDesc(
-                        buyer, productId, OrderStatus.COMPLETED)
+                .findTopByBuyerAndProduct_IdAndStatusInAndReviewIsNullOrderByIdDesc(
+                        buyer, productId, STATUSES_ELIGIBLE_FOR_REVIEW)
                 .isPresent();
     }
 
     @Transactional
     public void createReview(Long userId, ReviewRequest req) {
-        User buyer = userRepository.findById(userId).orElseThrow();
-        Product product = productRepository.findById(req.getProductId()).orElseThrow();
+        User buyer = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        Product product = productRepository.findById(req.getProductId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Товар не найден"));
 
         Order order = orderRepository
-                .findTopByBuyerAndProduct_IdAndStatusAndReviewIsNullOrderByIdDesc(
-                        buyer, req.getProductId(), OrderStatus.COMPLETED)
-                .orElseThrow(() -> new RuntimeException("Заказ не найден или отзыв уже оставлен"));
+                .findTopByBuyerAndProduct_IdAndStatusInAndReviewIsNullOrderByIdDesc(
+                        buyer, req.getProductId(), STATUSES_ELIGIBLE_FOR_REVIEW)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Нет подходящего заказа или отзыв уже оставлен"));
 
         Review review = new Review();
         review.setOrder(order);
@@ -60,8 +71,7 @@ public class ReviewService {
         order.setReview(review);
         reviewRepository.save(review);
 
-        // Пересчёт среднего рейтинга продукта
-        double avg = reviewRepository.findByProductId(product.getId())
+        double avg = reviewRepository.findByProduct_Id(product.getId())
                 .stream()
                 .mapToInt(Review::getRating)
                 .average()

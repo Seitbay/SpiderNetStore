@@ -16,22 +16,30 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private static final BigDecimal MAX_DEPOSIT = new BigDecimal("999999.99");
+    private static final BigDecimal MAX_SINGLE_OPERATION = new BigDecimal("999999.99");
 
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
 
+    @Transactional(readOnly = true)
+    public BigDecimal getBalance(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        return nonNullBalance(user);
+    }
+
     @Transactional
     public Transaction deposit(Long userId, BigDecimal amount) {
         validatePositiveAmount(amount);
-        if (amount.compareTo(MAX_DEPOSIT) > 0) {
+        if (amount.compareTo(MAX_SINGLE_OPERATION) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Слишком большая сумма пополнения");
         }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
-        user.setBalance(user.getBalance().add(amount));
+        BigDecimal balance = nonNullBalance(user);
+        user.setBalance(balance.add(amount));
         userRepository.save(user);
 
         Transaction tx = new Transaction();
@@ -46,15 +54,19 @@ public class PaymentService {
     @Transactional
     public Transaction payout(Long userId, BigDecimal amount) {
         validatePositiveAmount(amount);
+        if (amount.compareTo(MAX_SINGLE_OPERATION) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Слишком большая сумма вывода");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
-        if (user.getBalance().compareTo(amount) < 0) {
+        BigDecimal balance = nonNullBalance(user);
+        if (balance.compareTo(amount) < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недостаточно средств для вывода");
         }
 
-        user.setBalance(user.getBalance().subtract(amount));
+        user.setBalance(balance.subtract(amount));
         userRepository.save(user);
 
         Transaction tx = new Transaction();
@@ -69,6 +81,11 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public Page<Transaction> listMyTransactions(Long userId, Pageable pageable) {
         return transactionRepository.findByUserInvolved(userId, pageable);
+    }
+
+    private static BigDecimal nonNullBalance(User user) {
+        BigDecimal b = user.getBalance();
+        return b != null ? b : BigDecimal.ZERO;
     }
 
     private void validatePositiveAmount(BigDecimal amount) {

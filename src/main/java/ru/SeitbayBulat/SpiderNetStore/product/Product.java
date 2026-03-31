@@ -6,7 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import ru.SeitbayBulat.SpiderNetStore.product.category.Category;
+import ru.SeitbayBulat.SpiderNetStore.product.stock.StockItem;
 import ru.SeitbayBulat.SpiderNetStore.user.User;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Id;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -60,4 +62,8 @@ public class Product {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "field_schema", columnDefinition = "jsonb")
     private String fieldSchema;
+
+    @OrderBy("id ASC")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StockItem> stockItems = new ArrayList<>();
 }

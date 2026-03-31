@@ -1,12 +1,14 @@
 package ru.SeitbayBulat.SpiderNetStore.product.productServices;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.SeitbayBulat.SpiderNetStore.order.review.ReviewRepository;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductRepository;
@@ -26,12 +28,7 @@ public class ProductCatalogService {
 
     @Transactional(readOnly = true)
     public ProductListDto findAll(String q, Long categoryId, int page, int size) {
-
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by("createdAt").descending()
-        );
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         Page<Product> products;
 
@@ -51,7 +48,7 @@ public class ProductCatalogService {
     @Transactional(readOnly = true)
     public ProductDetailDto findById(Long id) {
         Product p = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Товар не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Товар не найден"));
 
         ProductDetailDto dto = new ProductDetailDto();
         dto.setId(p.getId());
@@ -65,6 +62,7 @@ public class ProductCatalogService {
         dto.setSellerId(p.getSeller().getId());
         dto.setCategories(p.getCategories().stream()
                 .map(Category::getName).toList());
+        dto.setFieldSchema(p.getFieldSchema());
         return dto;
     }
 

@@ -2,28 +2,35 @@ package ru.SeitbayBulat.SpiderNetStore.order;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.SeitbayBulat.SpiderNetStore.user.User;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    Optional<Order> findTopByBuyerAndProduct_IdAndStatusAndReviewIsNullOrderByIdDesc(
-            User buyer, Long productId, OrderStatus status);
+    Optional<Order> findTopByBuyerAndProduct_IdAndStatusInAndReviewIsNullOrderByIdDesc(
+            User buyer, Long productId, Collection<OrderStatus> statuses);
 
+    @EntityGraph(attributePaths = {"buyer", "product", "product.seller", "stockItem", "dispute"})
     Page<Order> findByBuyer_IdOrderByCreatedAtDesc(Long buyerId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"buyer", "product", "product.seller", "stockItem", "dispute"})
     Page<Order> findByProduct_Seller_IdOrderByCreatedAtDesc(Long sellerId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"buyer", "product", "product.seller", "stockItem", "dispute"})
     Optional<Order> findByIdAndBuyer_Id(Long id, Long buyerId);
 
+    @EntityGraph(attributePaths = {"buyer", "product", "product.seller", "stockItem", "dispute"})
     Optional<Order> findByIdAndProduct_Seller_Id(Long id, Long sellerId);
 
+    @EntityGraph(attributePaths = {"buyer", "product", "product.seller", "stockItem", "dispute"})
     @Query("""
             SELECT o FROM Order o
             WHERE o.id = :orderId

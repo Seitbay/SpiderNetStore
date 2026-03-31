@@ -21,4 +21,7 @@ public class OrderDto {
     private String productTitle;
 
     private Long stockItemId;
+
+    private Long disputeId;
+    private String disputeStatus;
 }

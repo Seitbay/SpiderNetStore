@@ -20,15 +20,15 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    private Order order;
+    private Order order;                                // null для DEPOSIT и PAYOUT
 
     @ManyToOne
     @JoinColumn(name = "from_user_id")
-    private User fromUser;
+    private User fromUser;                              // кто платит (null при пополнении)
 
     @ManyToOne
     @JoinColumn(name = "to_user_id")
-    private User toUser;
+    private User toUser;                                // кто получает (null при выводе)
 
     @Column(nullable = false, precision = 13, scale = 2)
     private BigDecimal amount;
