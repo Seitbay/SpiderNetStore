@@ -36,6 +36,7 @@ public class ProductMapper {
         dto.setPrice(p.getPrice());
         dto.setRating(p.getRating());
         dto.setStockCount(p.getStockCount());
+        dto.setImageUrl(p.getImageUrl());
 
         dto.setCategories(
                 p.getCategories().stream()

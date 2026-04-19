@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import ru.SeitbayBulat.SpiderNetStore.product.Product;
+import ru.SeitbayBulat.SpiderNetStore.product.ProductCoverStorage;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductRepository;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductStatus;
 import ru.SeitbayBulat.SpiderNetStore.product.category.Category;
@@ -33,6 +34,7 @@ public class ProductManagementService {
     private final ProductStockImportService productStockImportService;
     private final StockService stockService;
     private final ProductManageMapper productManageMapper;
+    private final ProductCoverStorage productCoverStorage;
 
     @Transactional
     public ProductManageDto createProduct(Long sellerId, CreateProductRequest request) {
@@ -47,7 +49,8 @@ public class ProductManagementService {
     public ProductManageDto createProductWithFiles(Long sellerId, CreateProductRequest metadata,
                                                    List<MultipartFile> textFiles,
                                                    List<MultipartFile> jsonFiles,
-                                                   List<MultipartFile> archiveFiles) {
+                                                   List<MultipartFile> archiveFiles,
+                                                   MultipartFile coverImage) {
         User seller = loadSeller(sellerId);
         Product product = buildProduct(seller, metadata);
         product = productRepository.save(product);
@@ -56,6 +59,12 @@ public class ProductManagementService {
         productStockImportService.importJsonFiles(pid, jsonFiles);
         productStockImportService.importArchiveFiles(pid, archiveFiles);
         productStockImportService.importFromCreateRequest(pid, metadata);
+        if (coverImage != null && !coverImage.isEmpty()) {
+            Product saved = productRepository.findById(pid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Продукт не найден"));
+            saved.setImageUrl(productCoverStorage.saveCover(pid, coverImage));
+            productRepository.save(saved);
+        }
         return loadManageDto(pid, sellerId);
     }
 
@@ -109,6 +118,10 @@ public class ProductManagementService {
         if (request.getCategoryIds() != null) {
             product.setCategories(resolveCategories(request.getCategoryIds()));
         }
+        if (request.getImageUrl() != null) {
+            String u = request.getImageUrl().trim();
+            product.setImageUrl(u.isEmpty() ? null : u);
+        }
 
         if (request.getDeleteStockItemIds() != null) {
             for (Long sid : request.getDeleteStockItemIds()) {
@@ -132,6 +145,16 @@ public class ProductManagementService {
 
     @Transactional(readOnly = true)
     public ProductManageDto getProductForManage(Long sellerId, Long productId) {
+        return loadManageDto(productId, sellerId);
+    }
+
+    @Transactional
+    public ProductManageDto uploadProductCover(Long sellerId, Long productId, MultipartFile coverImage) {
+        assertOwnsProduct(sellerId, productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Продукт не найден"));
+        product.setImageUrl(productCoverStorage.saveCover(productId, coverImage));
+        productRepository.save(product);
         return loadManageDto(productId, sellerId);
     }
 
@@ -161,6 +184,9 @@ public class ProductManagementService {
         product.setStockCount(0);
         product.setFieldSchema(request.getFieldSchema());
         product.setCategories(resolveCategories(request.getCategoryIds()));
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            product.setImageUrl(request.getImageUrl().trim());
+        }
         return product;
     }
 

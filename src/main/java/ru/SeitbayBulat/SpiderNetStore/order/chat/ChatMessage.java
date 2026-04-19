@@ -30,10 +30,11 @@ public class ChatMessage {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
-    @Column(name = "is_read")
-    private boolean isRead = false;
-
     @CreationTimestamp
     @Column(name = "sent_at", updatable = false)
     private LocalDateTime sentAt;
+
+    /** Мягкое удаление (фаза 5); {@code null} — активное сообщение */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

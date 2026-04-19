@@ -1,6 +1,7 @@
 package ru.SeitbayBulat.SpiderNetStore.product.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductStatus;
 
@@ -18,6 +19,9 @@ public class UpdateProductRequest {
     private ProductStatus status;
     private List<Long> categoryIds;
     private String fieldSchema;
+
+    @Size(max = 2048)
+    private String imageUrl;
 
     /** Удалить только свободные (AVAILABLE) позиции склада. */
     private List<Long> deleteStockItemIds;

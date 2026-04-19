@@ -58,37 +58,28 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-
     @Transactional
     public Order completeOrder(Long orderId, Long buyerId) {
         Order order = orderRepository.findByIdAndBuyer_Id(orderId, buyerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден"));
         requireStatus(order, OrderStatus.PENDING);
 
-        User buyer = order.getBuyer();
-        User seller = order.getProduct().getSeller();
+        Long sellerId = order.getProduct().getSeller().getId();
         BigDecimal amount = order.getAmount();
 
-        if (buyer.getBalance().compareTo(amount) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недостаточно средств на балансе");
-        }
+        TransferParties parties = transferBetweenUsers(
+                buyerId,
+                sellerId,
+                amount,
+                "Недостаточно средств на балансе");
 
-        transferMoney(buyer, seller, amount);
-
-        Transaction tx = new Transaction();
-        tx.setOrder(order);
-        tx.setFromUser(buyer);
-        tx.setToUser(seller);
-        tx.setAmount(amount);
-        tx.setType(TransactionType.PURCHASE);
-        transactionRepository.save(tx);
+        recordTransaction(order, parties.from(), parties.to(), amount, TransactionType.PURCHASE);
 
         stockService.confirmSale(order.getStockItem());
 
         order.setStatus(OrderStatus.COMPLETED);
         return orderRepository.save(order);
     }
-
 
     @Transactional
     public Order cancelOrder(Long orderId, Long buyerId) {
@@ -101,35 +92,26 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-
     @Transactional
     public Order refundOrder(Long orderId, Long sellerId) {
         Order order = orderRepository.findByIdAndProduct_Seller_Id(orderId, sellerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден"));
         requireStatus(order, OrderStatus.COMPLETED, OrderStatus.DISPUTED);
 
-        User buyer = order.getBuyer();
-        User seller = order.getProduct().getSeller();
+        Long buyerId = order.getBuyer().getId();
         BigDecimal amount = order.getAmount();
 
-        if (seller.getBalance().compareTo(amount) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "На балансе продавца недостаточно средств для возврата");
-        }
+        TransferParties parties = transferBetweenUsers(
+                sellerId,
+                buyerId,
+                amount,
+                "На балансе продавца недостаточно средств для возврата");
 
-        transferMoney(seller, buyer, amount);
-
-        Transaction tx = new Transaction();
-        tx.setOrder(order);
-        tx.setFromUser(seller);
-        tx.setToUser(buyer);
-        tx.setAmount(amount);
-        tx.setType(TransactionType.REFUND);
-        transactionRepository.save(tx);
+        recordTransaction(order, parties.from(), parties.to(), amount, TransactionType.REFUND);
 
         order.setStatus(OrderStatus.REFUNDED);
         return orderRepository.save(order);
     }
-
 
     @Transactional(readOnly = true)
     public Order getOrderForParticipant(Long orderId, Long userId) {
@@ -156,13 +138,50 @@ public class OrderService {
                 "Операция недоступна для статуса " + current + ", допустимо: " + Arrays.toString(allowed));
     }
 
-    private void transferMoney(User from, User to, BigDecimal amount) {
-        from.setBalance(from.getBalance().subtract(amount));
-        to.setBalance(to.getBalance().add(amount));
+    /**
+     * Перевод между пользователями с блокировкой строк (по возрастанию id — меньше риск взаимоблокировки)
+     * и проверкой баланса отправителя уже под блокировкой.
+     */
+    private TransferParties transferBetweenUsers(Long fromUserId, Long toUserId, BigDecimal amount,
+                                                 String insufficientFundsMessage) {
+        long minId = Math.min(fromUserId, toUserId);
+        long maxId = Math.max(fromUserId, toUserId);
 
-        User first = from.getId() < to.getId() ? from : to;
-        User second = from.getId() < to.getId() ? to : from;
-        userRepository.save(first);
-        userRepository.save(second);
+        User lockedMin = userRepository.findByIdForUpdate(minId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        User lockedMax = userRepository.findByIdForUpdate(maxId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+
+        User from = fromUserId.equals(lockedMin.getId()) ? lockedMin : lockedMax;
+        User to = toUserId.equals(lockedMin.getId()) ? lockedMin : lockedMax;
+
+        BigDecimal fromBalance = nonNullBalance(from.getBalance());
+        if (fromBalance.compareTo(amount) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, insufficientFundsMessage);
+        }
+
+        from.setBalance(fromBalance.subtract(amount));
+        to.setBalance(nonNullBalance(to.getBalance()).add(amount));
+        userRepository.save(from);
+        userRepository.save(to);
+
+        return new TransferParties(from, to);
+    }
+
+    private void recordTransaction(Order order, User from, User to, BigDecimal amount, TransactionType type) {
+        Transaction tx = new Transaction();
+        tx.setOrder(order);
+        tx.setFromUser(from);
+        tx.setToUser(to);
+        tx.setAmount(amount);
+        tx.setType(type);
+        transactionRepository.save(tx);
+    }
+
+    private record TransferParties(User from, User to) {
+    }
+
+    private static BigDecimal nonNullBalance(BigDecimal balance) {
+        return balance != null ? balance : BigDecimal.ZERO;
     }
 }

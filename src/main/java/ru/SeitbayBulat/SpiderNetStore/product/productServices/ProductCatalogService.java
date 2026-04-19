@@ -63,6 +63,7 @@ public class ProductCatalogService {
         dto.setCategories(p.getCategories().stream()
                 .map(Category::getName).toList());
         dto.setFieldSchema(p.getFieldSchema());
+        dto.setImageUrl(p.getImageUrl());
         return dto;
     }
 

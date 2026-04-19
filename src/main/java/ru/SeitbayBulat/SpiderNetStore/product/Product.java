@@ -63,6 +63,10 @@ public class Product {
     @Column(name = "field_schema", columnDefinition = "jsonb")
     private String fieldSchema;
 
+    
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
     @OrderBy("id ASC")
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockItem> stockItems = new ArrayList<>();

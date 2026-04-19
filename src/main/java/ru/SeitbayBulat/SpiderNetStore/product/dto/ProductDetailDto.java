@@ -23,4 +23,5 @@ public class ProductDetailDto {
     private Long sellerId;
     private List<String> categories;
     private String fieldSchema;
+    private String imageUrl;
 }

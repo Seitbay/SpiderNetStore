@@ -17,4 +17,6 @@ public class ProductDto {
     private ProductStatus status;
 
     private List<String> categories;
+
+    private String imageUrl;
 }

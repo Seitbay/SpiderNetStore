@@ -90,12 +90,24 @@ public class ProductController {
             @RequestPart(value = "textFiles", required = false) List<MultipartFile> textFiles,
             @RequestPart(value = "jsonFiles", required = false) List<MultipartFile> jsonFiles,
             @RequestPart(value = "archiveFiles", required = false) List<MultipartFile> archiveFiles,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage,
             @AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(productManagementService.createProductWithFiles(
-                principal.getId(), metadata, textFiles, jsonFiles, archiveFiles));
+                principal.getId(), metadata, textFiles, jsonFiles, archiveFiles, coverImage));
+    }
+
+    @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductManageDto> uploadProductCover(
+            @PathVariable Long id,
+            @RequestPart("coverImage") MultipartFile coverImage,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(productManagementService.uploadProductCover(principal.getId(), id, coverImage));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)

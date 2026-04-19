@@ -23,8 +23,9 @@ public class StockItem {
     private Product product;
 
     /**
-     * JSON-данные (строка линии, объект, метаданные архива). Колонка jsonb.
+     * JSON-данные (строка линии, объект, метаданные архива). Колонка jsonb в PostgreSQL.
      */
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String data;
 

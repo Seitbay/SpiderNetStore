@@ -10,7 +10,9 @@ public class PageController {
 
     @GetMapping("/")
     public String index() {
-        return "index";
+        // Имя шаблона не "index": иначе Spring Boot регистрирует WelcomePageHandlerMapping
+        // на шаблон index и может перехватывать "/" с ответом 404.
+        return "home";
     }
 
     @GetMapping("/login")
@@ -34,7 +36,7 @@ public class PageController {
         model.addAttribute("query", q != null ? q : "");
         return "search";
     }
-    @GetMapping("/api/admin")
+    @GetMapping({"/admin", "/api/admin"})
     public String admin() {
         return "admin";
     }

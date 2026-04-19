@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import ru.SeitbayBulat.SpiderNetStore.user.User;
-import ru.SeitbayBulat.SpiderNetStore.user.UserRepository;
+import ru.SeitbayBulat.SpiderNetStore.order.chat.OrderChatService;
+import ru.SeitbayBulat.SpiderNetStore.order.dto.ChatUnreadSummaryDto;
 import ru.SeitbayBulat.SpiderNetStore.user.dto.*;
 import ru.SeitbayBulat.SpiderNetStore.user.service.UserService;
 
@@ -19,6 +19,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final OrderChatService orderChatService;
 
     @GetMapping("/me")
     public ResponseEntity<UserProfileDto> getMe(Authentication authentication) {
@@ -46,6 +47,13 @@ public class UserController {
     public ResponseEntity<Map<String, BigDecimal>> getMyBalance(Authentication authentication) {
         BigDecimal balance = userService.getBalance(authentication.getName());
         return ResponseEntity.ok(Map.of("balance", balance));
+    }
+
+    /** Непрочитанные входящие сообщения по заказам (фаза 3). */
+    @GetMapping("/me/chat/unread")
+    public ResponseEntity<ChatUnreadSummaryDto> getChatUnreadSummary(Authentication authentication) {
+        long userId = userService.getCurrentUser(authentication.getName()).getId();
+        return ResponseEntity.ok(orderChatService.unreadSummary(userId));
     }
 
     @PatchMapping("/me/password") // TODO: нужно еще логаутиться

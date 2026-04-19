@@ -42,7 +42,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findBySeller_Id(Long sellerId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"categories", "stockItems", "seller"})
+    /**
+     * Нельзя одновременно JOIN FETCH двух List-багов (categories + stockItems) — MultipleBagFetchException.
+     * Категории подгружаются лениво отдельным запросом при обращении к {@code p.getCategories()}.
+     */
+    @EntityGraph(attributePaths = {"stockItems", "seller"})
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdWithCategoriesAndStock(@Param("id") Long id);
 }

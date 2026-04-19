@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import ru.SeitbayBulat.SpiderNetStore.product.ProductStatus;
 
@@ -23,6 +24,9 @@ public class CreateProductRequest {
     private ProductStatus status;
     private List<Long> categoryIds;
     private String fieldSchema;
+
+    @Size(max = 2048)
+    private String imageUrl;
 
     /**
      * Каждый внутренний список — содержимое одного текстового файла (одна строка = один сток-айтем).
